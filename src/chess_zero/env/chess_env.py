@@ -227,7 +227,7 @@ def check_current_planes(realfen, planes):
     # realparts[5] is the fifty-move clock, discard that
     return "".join(fakefen) == replace_tags_board(realfen)
 
-
+# IMPORTANT fen to (18, 8, 8) representation 
 def canon_input_planes(fen):
     """
 
