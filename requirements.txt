@@ -1,7 +1,7 @@
-tensorflow-gpu
+python-chess==0.25.1
+tensorflow-gpu==1.15.2
 keras
 profilehooks
 numpy
 pyperclip
-python-chess
 h5py
