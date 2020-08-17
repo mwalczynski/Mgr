@@ -81,7 +81,7 @@ def flipped_uci_labels():
 
     return [repl(x) for x in create_uci_labels()]
 
-# IMPORTANT
+# IMPORTANT config
 def create_uci_labels():
     """
     Creates the labels for the universal chess interface into an array and returns them
@@ -102,7 +102,7 @@ def create_uci_labels():
                            [(l1 + a, n1 + b) for (a, b) in
                             [(-2, -1), (-1, -2), (-2, 1), (1, -2), (2, -1), (-1, 2), (2, 1), (1, 2)]]
             # 8 * 8 * 54 (destinations) = 3456
-            # 3456 / 2 = 1728
+            # 3456 - /illegal moves and repetitions/
             for (l2, n2) in destinations:
                 if (l1, n1) != (l2, n2) and l2 in range(8) and n2 in range(8):
                     move = letters[l1] + numbers[n1] + letters[l2] + numbers[n2]
@@ -146,12 +146,8 @@ class Config:
     unflipped_index = None
 
     def __init__(self):
-        """
-            representing the set of configs to use for all of the config attributes.
-        """
         self.opts = Options()
         self.resource = ResourceConfig()
-
         self.model = c.ModelConfig()
         self.play = c.PlayConfig()
         self.play_data = c.PlayDataConfig()
@@ -172,6 +168,10 @@ class Config:
 
 
 Config.unflipped_index = [Config.labels.index(x) for x in Config.flipped_labels]
+
+
+# print(Config.labels)
+# print(Config.flipped_labels)
 
 
 def _project_dir():

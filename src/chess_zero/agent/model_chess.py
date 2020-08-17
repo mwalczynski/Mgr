@@ -54,6 +54,7 @@ class ChessModel:
             self.api.start()
         return [self.api.create_pipe() for _ in range(num)]
 
+    # IMPORTANT NN model
     def build(self):
         """
         Builds the full Keras model and stores it in self.model.
@@ -127,7 +128,6 @@ class ChessModel:
         """
         mc = self.config.model
         resources = self.config.resource
-        
         if os.path.exists(config_path) and os.path.exists(weight_path):
             logger.debug(f"loading model from {config_path}")
             with open(config_path, "rt") as f:
@@ -153,6 +153,3 @@ class ChessModel:
             self.model.save_weights(weight_path)
         self.digest = self.fetch_digest(weight_path)
         logger.debug(f"saved model digest {self.digest}")
-
-        mc = self.config.model
-        resources = self.config.resource
