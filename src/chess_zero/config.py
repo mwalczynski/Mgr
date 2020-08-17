@@ -5,6 +5,8 @@ Everything related to configuration of running this application
 import os
 import numpy as np
 
+import chess_zero.configs.config as c
+
 
 class PlayWithHumanConfig:
     """
@@ -48,11 +50,6 @@ class ResourceConfig:
         self.model_dir = os.environ.get("MODEL_DIR", os.path.join(self.data_dir, "model"))
         self.model_best_config_path = os.path.join(self.model_dir, "model_best_config.json")
         self.model_best_weight_path = os.path.join(self.model_dir, "model_best_weight.h5")
-
-        self.model_best_distributed_ftp_server = "alpha-chess-zero.mygamesonline.org"
-        self.model_best_distributed_ftp_user = "2537576_chess"
-        self.model_best_distributed_ftp_password = "alpha-chess-zero-2"
-        self.model_best_distributed_ftp_remote_path = "/alpha-chess-zero.mygamesonline.org/"
 
         self.next_generation_model_dir = os.path.join(self.model_dir, "next_generation")
         self.next_generation_model_dirname_tmpl = "model_%s"
@@ -148,24 +145,13 @@ class Config:
     flipped_labels = flipped_uci_labels()
     unflipped_index = None
 
-    def __init__(self, config_type="mini"):
+    def __init__(self):
         """
-
-        :param str config_type: one of "mini", "normal", or "distributed", representing the set of
-            configs to use for all of the config attributes. Mini is a small version, normal is the
-            larger version, and distributed is a version which runs across multiple GPUs it seems
+            representing the set of configs to use for all of the config attributes.
         """
         self.opts = Options()
         self.resource = ResourceConfig()
 
-        if config_type == "mini":
-            import chess_zero.configs.mini as c
-        elif config_type == "normal":
-            import chess_zero.configs.normal as c
-        elif config_type == "distributed":
-            import chess_zero.configs.distributed as c
-        else:
-            raise RuntimeError(f"unknown config_type: {config_type}")
         self.model = c.ModelConfig()
         self.play = c.PlayConfig()
         self.play_data = c.PlayDataConfig()
@@ -186,10 +172,6 @@ class Config:
 
 
 Config.unflipped_index = [Config.labels.index(x) for x in Config.flipped_labels]
-
-
-# print(Config.labels)
-# print(Config.flipped_labels)
 
 
 def _project_dir():

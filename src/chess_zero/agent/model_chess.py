@@ -127,18 +127,7 @@ class ChessModel:
         """
         mc = self.config.model
         resources = self.config.resource
-        if mc.distributed and config_path == resources.model_best_config_path:
-            try:
-                logger.debug("loading model from server")
-                ftp_connection = ftplib.FTP(resources.model_best_distributed_ftp_server,
-                                            resources.model_best_distributed_ftp_user,
-                                            resources.model_best_distributed_ftp_password)
-                ftp_connection.cwd(resources.model_best_distributed_ftp_remote_path)
-                ftp_connection.retrbinary("RETR model_best_config.json", open(config_path, 'wb').write)
-                ftp_connection.retrbinary("RETR model_best_weight.h5", open(weight_path, 'wb').write)
-                ftp_connection.quit()
-            except:
-                pass
+        
         if os.path.exists(config_path) and os.path.exists(weight_path):
             logger.debug(f"loading model from {config_path}")
             with open(config_path, "rt") as f:
@@ -167,20 +156,3 @@ class ChessModel:
 
         mc = self.config.model
         resources = self.config.resource
-        if mc.distributed and config_path == resources.model_best_config_path:
-            try:
-                logger.debug("saving model to server")
-                ftp_connection = ftplib.FTP(resources.model_best_distributed_ftp_server,
-                                            resources.model_best_distributed_ftp_user,
-                                            resources.model_best_distributed_ftp_password)
-                ftp_connection.cwd(resources.model_best_distributed_ftp_remote_path)
-                fh = open(config_path, 'rb')
-                ftp_connection.storbinary('STOR model_best_config.json', fh)
-                fh.close()
-
-                fh = open(weight_path, 'rb')
-                ftp_connection.storbinary('STOR model_best_weight.h5', fh)
-                fh.close()
-                ftp_connection.quit()
-            except:
-                pass

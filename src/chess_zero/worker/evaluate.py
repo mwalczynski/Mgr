@@ -3,6 +3,7 @@ Encapsulates the worker which evaluates newly-trained models and picks the best 
 """
 
 import os
+import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from logging import getLogger
 from multiprocessing import Manager
@@ -63,7 +64,7 @@ class EvaluateWorker:
         Given a model, evaluates it by playing a bunch of games against the current model.
 
         :param ChessModel ng_model: model to evaluate
-        :return: true iff this model is better than the current_model
+        :return: true if this model is better than the current_model
         """
         ng_pipes = self.m.list([ng_model.get_pipes(self.play_config.search_threads) for _ in range(self.play_config.max_processes)])
 
@@ -90,13 +91,6 @@ class EvaluateWorker:
                     colors = reversed(colors)
                 pretty_print(env, colors)
 
-                if len(results)-sum(results) >= self.config.eval.game_num * (1-self.config.eval.replace_rate):
-                    logger.debug(f"lose count reach {results.count(0)} so give up challenge")
-                    return False
-                if sum(results) >= self.config.eval.game_num * self.config.eval.replace_rate:
-                    logger.debug(f"win count reach {results.count(1)} so change best model")
-                    return True
-
         win_rate = sum(results) / len(results)
         logger.debug(f"winning rate {win_rate*100:.1f}%")
         return win_rate >= self.config.eval.replace_rate
@@ -108,8 +102,22 @@ class EvaluateWorker:
         :param file model_dir: directory where model should be moved
         """
         rc = self.config.resource
-        new_dir = os.path.join(rc.next_generation_model_dir, "copies", model_dir.name)
-        os.rename(model_dir, new_dir)
+        copy_dir = os.path.join(rc.next_generation_model_dir, "copies")
+        if not os.path.exists(copy_dir):
+            os.makedirs(copy_dir)
+
+        model_dir_name = model_dir.rpartition('/')[2]
+        new_dir = os.path.join(copy_dir, model_dir_name)
+        self.move_tree(model_dir, new_dir)
+
+    def move_tree(self, src, dst):
+        if not os.path.exists(dst):
+            os.makedirs(dst)
+
+        files = os.listdir(src)
+        for file in files:
+            new_path = shutil.move(f"{src}/{file}", f"{dst}/{file}")
+        shutil.rmtree(src)
 
     def load_current_model(self):
         """
