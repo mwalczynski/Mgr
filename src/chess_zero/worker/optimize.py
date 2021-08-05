@@ -48,6 +48,7 @@ class OptimizeWorker:
         self.model = None  # type: ChessModel
         self.dataset = deque(),deque(),deque()
         self.executor = ProcessPoolExecutor(max_workers=config.trainer.cleaning_processes)
+        self.epoch_count = 0
 
     def start(self):
         """
@@ -86,6 +87,7 @@ class OptimizeWorker:
         state_ary, policy_ary, value_ary = self.collect_all_loaded_data()
         tensorboard_cb = TensorBoard(log_dir="./logs", batch_size=tc.batch_size, histogram_freq=1)
 
+        self.epoch_count += epochs
         self.model.model.fit(state_ary, [policy_ary, value_ary],
                              batch_size=tc.batch_size,
                              epochs=epochs,
@@ -109,7 +111,8 @@ class OptimizeWorker:
         """
         rc = self.config.resource
         model_id = datetime.now().strftime("%Y%m%d-%H%M%S.%f")
-        model_dir = os.path.join(rc.next_generation_model_dir, rc.next_generation_model_dirname_tmpl % model_id)
+        epoch_id = str(self.epoch_count).zfill(8)
+        model_dir = os.path.join(rc.next_generation_model_dir, rc.next_generation_model_dirname_tmpl.format(epoch_id, model_id))
         os.makedirs(model_dir, exist_ok=True)
         config_path = os.path.join(model_dir, rc.next_generation_model_config_filename)
         weight_path = os.path.join(model_dir, rc.next_generation_model_weight_filename)

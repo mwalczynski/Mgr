@@ -1,0 +1,4 @@
+python src/chess_zero/run.py --cmd sl
+python src/chess_zero/run.py --cmd self
+python src/chess_zero/run.py --cmd opt
+python src/chess_zero/run.py --cmd eval

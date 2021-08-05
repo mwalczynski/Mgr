@@ -49,6 +49,8 @@ class EvaluateWorker:
         Start evaluation, endlessly loading the latest models from the directory which stores them and
         checking if they do better than the current model, saving the result in self.current_model
         """
+        self.ensure_folder_exists()
+
         while True:
             ng_model, model_dir = self.load_next_generation_model()
             logger.debug(f"start evaluate model {model_dir}")
@@ -57,7 +59,10 @@ class EvaluateWorker:
                 logger.debug(f"New Model become best model: {model_dir}")
                 save_as_best_model(ng_model)
                 self.current_model = ng_model
-            self.move_model(model_dir)
+
+            model_name = model_dir.rpartition('/')[2]
+            self.log_eval_result(model_name, ng_is_great)
+            self.move_model(model_dir, model_name, ng_is_great)
 
     def evaluate_model(self, ng_model):
         """
@@ -95,19 +100,42 @@ class EvaluateWorker:
         logger.debug(f"winning rate {win_rate*100:.1f}%")
         return win_rate >= self.config.eval.replace_rate
 
-    def move_model(self, model_dir):
-        """
-        Moves the newest model to the specified directory
-
-        :param file model_dir: directory where model should be moved
-        """
-        rc = self.config.resource
-        copy_dir = os.path.join(rc.next_generation_model_dir, "copies")
-        if not os.path.exists(copy_dir):
+    def ensure_folder_and_files_exists(self):
+        better_dir = os.path.join(rc.model_dir, "better")
+        if not os.path.isdir(copy_dir):
             os.makedirs(copy_dir)
 
-        model_dir_name = model_dir.rpartition('/')[2]
-        new_dir = os.path.join(copy_dir, model_dir_name)
+        worse_dir = os.path.join(rc.model_dir, "worse")
+        if not os.path.isdir(copy_dir):
+            os.makedirs(copy_dir)
+
+        eval_results = os.path.join(rc.model_dir, "results.txt")
+        if not os.path.isfile(eval_results):
+            f = open(eval_results, "w+")
+            f.close
+
+    def log_eval_result(self, model_name, model_is_better):
+        rc = self.config.resource
+
+        eval_results_file = os.path.join(rc.model_dir, "results.txt")
+        with open(eval_results_file, "a+") as f:
+            if model_is_better:
+                f.write("{0:<30} {1}".format(model_name, "better"))
+            else:
+                f.write("{0:<30} {1}".format(model_name, "worse"))
+
+
+
+    def move_model(self, model_dir, model_name, model_is_better):
+        rc = self.config.resource
+
+        dir_to_move = ''
+        if model_is_better:
+            dir_to_move = os.path.join(rc.model_dir, "better")
+        else:
+            dir_to_move = os.path.join(rc.model_dir, "worse")
+
+        new_dir = os.path.join(dir_to_move, model_name)
         self.move_tree(model_dir, new_dir)
 
     def move_tree(self, src, dst):
